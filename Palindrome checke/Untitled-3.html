@@ -1,0 +1,398 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  
+  <title>Palindrome Checker</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      background: rgb(39, 159, 206) 
+      color;
+      min-height: 100vh;
+      padding: 40px 16px;
+    }
+
+    .container {
+      max-width: 650px;
+      margin: 0 auto;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    header h1 {
+      color: blueviolet
+      font-size: 2rem;
+      margin-bottom: 10px;
+    }
+
+    header p {
+      color: #2266c5;
+      line-height: 1.6;
+    }
+
+    .card {
+      background: white;
+      padding: 25px;
+      border-radius: 16px;
+      box-shadow: 0 5px 20px rgba(15, 23, 42, 0.06);
+      margin-bottom: 20px;
+    }
+
+    label {
+      display: block;
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+
+    .input-row {
+      display: flex;
+      gap: 10px;
+    }
+
+    input {
+      flex: 1;
+      min-width: 0;
+      padding: 13px;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      font-size: 16px;
+    }
+
+    input:focus {
+      outline: 2px solid #818cf8;
+      border-color: #6366f1;
+    }
+
+    button {
+      padding: 13px 18px;
+      background: #4f46e5;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 15px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #3730a3;
+    }
+
+    .hint {
+      color: #64748b;
+      font-size: 13px;
+      margin-top: 10px;
+    }
+
+    #result {
+      margin-top: 20px;
+      padding: 15px;
+      border-radius: 8px;
+      display: none;
+      line-height: 1.5;
+      overflow-wrap: anywhere;
+    }
+
+    #result.success {
+      display: block;
+      background: #dcfce7;
+      color: #166534;
+    }
+
+    #result.failure {
+      display: block;
+      background: #fee2e2;
+      color: #991b1b;
+    }
+
+    #result.error {
+      display: block;
+      background: #fef3c7;
+      color: #92400e;
+    }
+
+    .history-heading {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+
+    .history-heading h2 {
+      font-size: 1.2rem;
+    }
+
+    .clear-button {
+      background: #e2e8f0;
+      color: #334155;
+      padding: 8px 12px;
+      font-size: 13px;
+    }
+
+    .clear-button:hover {
+      background: #cbd5e1;
+    }
+
+    #history {
+      list-style: none;
+    }
+
+    .history-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 0;
+      border-bottom: 1px solid #e2e8f0;
+    }
+
+    .history-item:last-child {
+      border-bottom: none;
+    }
+
+    .word {
+      font-weight: bold;
+      overflow-wrap: anywhere;
+    }
+
+    .status {
+      font-size: 13px;
+      font-weight: bold;
+      white-space: nowrap;
+    }
+
+    .yes {
+      color: #15803d;
+    }
+
+    .no {
+      color: #dc2626;
+    }
+
+    .empty {
+      color: #64748b;
+      text-align: center;
+      padding: 20px 0;
+    }
+
+    footer {
+      text-align: center;
+      color: #94a3b8;
+      font-size: 13px;
+      margin-top: 25px;
+    }
+
+    @media (max-width: 480px) {
+      body {
+        padding: 25px 12px;
+      }
+
+      .input-row {
+        flex-direction: column;
+      }
+
+      .input-row button {
+        width: 100%;
+      }
+
+      .card {
+        padding: 18px;
+      }
+
+      header h1 {
+        font-size: 1.7rem;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <main class="container">
+    <header>
+      <h1>Palindrome Checker</h1>
+      <p>
+        Discover whether a word or phrase reads the same
+        forwards and backwards.
+      </p>
+    </header>
+
+    <section class="card">
+      <form id="palindrome-form">
+        <label for="word-input">Enter a word or phrase</label>
+
+        <div class="input-row">
+          <input
+            type="text"
+            id="word-input"
+            placeholder="e.g. racecar"
+            autocomplete="off"
+            required
+          >
+          <button type="submit">Check Word</button>
+        </div>
+
+        <p class="hint">
+          Spaces, punctuation and capital letters are ignored.
+        </p>
+      </form>
+
+      <div id="result" role="status" aria-live="polite"></div>
+    </section>
+
+    <section class="card">
+      <div class="history-heading">
+        <h2>Check History</h2>
+        <button type="button" id="clear-history"
+          class="clear-button">Clear History</button>
+      </div>
+
+      <ul id="history">
+        <li class="empty">No words checked yet.</li>
+      </ul>
+    </section>
+
+    <footer>
+      Built with HTML, CSS and JavaScript
+    </footer>
+  </main>
+
+  <script>
+    // Array to store all checks during this session
+    const history = [];
+
+    // Get the HTML elements
+    const form = document.getElementById("palindrome-form");
+    const input = document.getElementById("word-input");
+    const result = document.getElementById("result");
+    const historyList = document.getElementById("history");
+    const clearButton = document.getElementById("clear-history");
+
+    // Function to check whether a word is a palindrome
+    function checkPalindrome(word) {
+      const cleanedWord = word
+        .toLowerCase()
+        .replace(/[^a-z0-9]/g, "");
+
+      if (cleanedWord.length === 0) {
+        return null;
+      }
+
+      const reversedWord = cleanedWord
+        .split("")
+        .reverse()
+        .join("");
+
+      return cleanedWord === reversedWord;
+    }
+
+    // Function to display the result
+    function displayResult(word, isPalindrome) {
+      result.className = "";
+
+      if (isPalindrome === null) {
+        result.textContent =
+          "Please enter at least one letter or number.";
+        result.classList.add("error");
+        return;
+      }
+
+      if (isPalindrome) {
+        result.textContent =
+          `"${word}" is a palindrome!`;
+        result.classList.add("success");
+      } else {
+        result.textContent =
+          `"${word}" is not a palindrome.`;
+        result.classList.add("failure");
+      }
+    }
+
+    // Function to display the history array on the page
+    function displayHistory() {
+      historyList.replaceChildren();
+
+      if (history.length === 0) {
+        const emptyMessage = document.createElement("li");
+        emptyMessage.className = "empty";
+        emptyMessage.textContent = "No words checked yet.";
+        historyList.appendChild(emptyMessage);
+        return;
+      }
+
+      // Show newest checks first
+      history.slice().reverse().forEach(function (item) {
+        const listItem = document.createElement("li");
+        listItem.className = "history-item";
+
+        const word = document.createElement("span");
+        word.className = "word";
+        word.textContent = item.word;
+
+        const status = document.createElement("span");
+        status.className = "status";
+
+        if (item.isPalindrome) {
+          status.textContent = "✓ Palindrome";
+          status.classList.add("yes");
+        } else {
+          status.textContent = "✗ Not a palindrome";
+          status.classList.add("no");
+        }
+
+        listItem.append(word, status);
+        historyList.appendChild(listItem);
+      });
+    }
+
+    // Run when the user submits the form
+    form.addEventListener("submit", function (event) {
+      event.preventDefault();
+
+      const word = input.value.trim();
+
+      if (word === "") {
+        result.className = "error";
+        result.textContent = "Please enter a word or phrase.";
+        return;
+      }
+
+      const isPalindrome = checkPalindrome(word);
+
+      displayResult(word, isPalindrome);
+
+      // Only save valid checks
+      if (isPalindrome !== null) {
+        history.push({
+          word: word,
+          isPalindrome: isPalindrome
+        });
+
+        displayHistory();
+      }
+
+      input.focus();
+    });
+
+    // Clear the stored history
+    clearButton.addEventListener("click", function () {
+      history.length = 0;
+      displayHistory();
+      result.className = "";
+      result.textContent = "";
+      result.style.display = "none";
+    });
+  </script>
+</body>
+</html>
